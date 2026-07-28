@@ -2,6 +2,7 @@
 
 import FixedPointTheorems.apply_cubical_sperner
 import FixedPointTheorems.convex_homeos
+import Mathlib.Dynamics.FixedPoints.Basic
 
 
 
@@ -22,5 +23,22 @@ theorem brouwer_fixed_point {V : Type*}
   let g := (toContinuousMap e).comp (f.comp (toContinuousMap e.symm))
   obtain ⟨y, hy⟩ := @fixed_point_unit_cube k g
   use (toContinuousMap e.symm) y
-  exact EquivLike.inv_apply_eq_iff_eq_apply.mp hy
+  have h1 : e.symm (e (f (e.symm y))) = e.symm y := congrArg e.symm hy
+  rwa [e.symm_apply_apply] at h1
 }
+
+/-- Brouwer's fixed-point theorem stated with mathlib's `Function.IsFixedPt` vocabulary. -/
+theorem brouwer_fixed_point_isFixedPt {V : Type*}
+    [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+    (s : Set V) (hcvx : Convex ℝ s) (hcmpct : IsCompact s) (hne : Set.Nonempty s)
+    (f : C(s, s)) :
+    ∃ x, Function.IsFixedPt f x := by
+  simpa [Function.IsFixedPt] using brouwer_fixed_point s hcvx hcmpct hne f
+
+/-- The fixed-point set of a continuous self-map on a Brouwer domain is nonempty. -/
+theorem brouwer_fixedPoints_nonempty {V : Type*}
+    [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+    (s : Set V) (hcvx : Convex ℝ s) (hcmpct : IsCompact s) (hne : Set.Nonempty s)
+    (f : C(s, s)) :
+    (Function.fixedPoints f).Nonempty := by
+  exact brouwer_fixed_point_isFixedPt s hcvx hcmpct hne f

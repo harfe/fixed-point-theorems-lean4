@@ -44,7 +44,7 @@ theorem homeo_of_finrank_eq {V W : Type*}
     exact Homeomorph.surjective L.toHomeomorph
     use 0
     rw [interior_closedBall]
-    {simp only [Metric.mem_ball, dist_self, zero_lt_one, pL]}
+    {simp only [Metric.mem_ball, dist_self, zero_lt_one]}
     {exact Ne.symm (zero_ne_one' ℝ)}
   }
   have e1 : pL ≃ₜ Metric.closedBall (0:W) 1 := by {
@@ -60,31 +60,13 @@ theorem homeo_of_finrank_eq {V W : Type*}
 
 
 lemma unit_cube_homeo_unit_ball {n}
-    : Nonempty (Set.Icc (0 : Fin n → ℝ) 1 ≃ₜ Metric.closedBall (0 : Fin n → ℝ) 1 ) := by {
-  apply homeo_unit_ball _ (convex_Icc 0 1) (isCompact_Icc)
-  rw [Convex.interior_nonempty_iff_affineSpan_eq_top (convex_Icc 0 1)]
-  have h12 : (0 : Fin n → ℝ) ∈ Set.Icc 0 1 := by {
-    simp only [Set.mem_Icc, le_refl, zero_le_one, and_self]
-  }
-  have h11 : (Set.Icc (0 : Fin n → ℝ) 1).Nonempty := Set.nonempty_of_mem h12
-  rw [AffineSubspace.affineSpan_eq_top_iff_vectorSpan_eq_top_of_nonempty _ _ _ h11]
-  rw [vectorSpan_eq_span_vsub_set_right ℝ h12]
-  simp only [vsub_eq_sub, sub_zero, Set.image_id']
-  have h6 := (Pi.basisFun ℝ (Fin n)).span_eq
-  refine Submodule.span_eq_of_le ⊤ (fun ⦃a⦄ a ↦ trivial) ?_
-  rw [←h6]
-  apply Submodule.span_mono
-  intro x h1
-  obtain ⟨y,h2⟩ := h1
-  simp only [Set.mem_Icc]
-  rw [←h2]
-  simp only [Pi.basisFun_apply, Pi.single_nonneg, zero_le_one, true_and]
-  apply Pi.le_def.mpr
-  intro i
-  simp only [Pi.basisFun_apply, Pi.one_apply]
-  apply update_le_iff.2
-  simp only [le_refl, ne_eq, Pi.zero_apply, zero_le_one, implies_true, and_self]
-}
+    : Nonempty (Set.Icc (0 : Fin n → ℝ) 1 ≃ₜ Metric.closedBall (0 : Fin n → ℝ) 1 ) := by
+  apply homeo_unit_ball _ (convex_Icc 0 1) isCompact_Icc
+  have h1 : Set.Icc (0 : Fin n → ℝ) 1 = Set.univ.pi (fun _ => Set.Icc (0 : ℝ) 1) := by
+    ext x; simp [Set.mem_Icc, Pi.le_def]
+  rw [h1, interior_pi_set Set.finite_univ]
+  exact Set.univ_pi_nonempty_iff.mpr fun _ => by
+    rw [interior_Icc]; exact ⟨1/2, by norm_num, by norm_num⟩
 
 lemma homeo_unit_cube_of_convex_compact {V : Type*}
     [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
@@ -104,7 +86,7 @@ lemma homeo_unit_cube_of_convex_compact {V : Type*}
       (AffineIsometryEquiv.constVSub ℝ pss).symm.toAffineMap)
   }
   have h34 : (interior s3).Nonempty := by {
-    rw [Convex.interior_nonempty_iff_affineSpan_eq_top h32]
+    refine (Convex.interior_nonempty_iff_affineSpan_eq_top h32).mpr ?_
     unfold s3
     rw [←AffineIsometryEquiv.coe_toAffineEquiv]
     rw [← AffineSubspace.comap_span]

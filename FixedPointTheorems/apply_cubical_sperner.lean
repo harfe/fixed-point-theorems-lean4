@@ -41,7 +41,7 @@ lemma reduced_label_props_1 (f : @unit_cube n → @unit_cube n) (x : @unit_cube 
     rw [h1]
     simp only [le_refl, true_and]
     intro k
-    have h2 : n ≠ k.1 := Nat.ne_of_lt' k.2
+    have h2 : n ≠ k.1 := by omega
     simp only [h2, IsEmpty.forall_iff, true_and]
     intro h3
     have h4 : k ∈ s := by {
@@ -60,7 +60,7 @@ lemma reduced_label_props_1 (f : @unit_cube n → @unit_cube n) (x : @unit_cube 
     rw [hm]
   }
   rw [h1]
-  simp only [Fin.is_le', ne_eq, Fin.val_fin_le, true_and]
+  simp only [Fin.is_le', Fin.val_fin_le, true_and]
   intro k1
   apply And.intro
   {
@@ -168,7 +168,7 @@ noncomputable def sperner_cube_of_function (f : @unit_cube n → @unit_cube n)
       simp only [h2]
       refine (div_eq_one_iff_eq ?_).mpr rfl
       simp only [ne_eq, Nat.cast_eq_zero]
-      exact Nat.ne_zero_of_lt ppos
+      omega
     }
   }
 
@@ -189,7 +189,7 @@ lemma dist_discrete_map p (ppos: 0 < p) (v1 v2 : Fin n → Fin (p+1))
   have h2k := (h1 k).2
   apply And.intro
   repeat {
-    rw [sub_le_iff_le_add', div_add_div_same]
+    rw [sub_le_iff_le_add', ← add_div]
     have ppos2 : 0 < (p : ℝ) := Nat.cast_pos'.mpr ppos
     rwa [div_le_div_iff_of_pos_right ppos2, ←Nat.cast_add_one, Nat.cast_le]
   }
@@ -199,7 +199,7 @@ lemma nearby_points (f : @unit_cube n → @unit_cube n) (p0:ℕ):
     ∃ x0 : @unit_cube n, ∀ k, (f x0).1 k ≥ x0.1 k ∧
     ∃ xk : @unit_cube n, dist x0 xk ≤ 1 / ↑(p0 +1) ∧ (f xk).1 k ≤ xk.1 k := by {
   let p := p0 + 1
-  have ppos : 0 < p := Nat.zero_lt_succ p0
+  have ppos : 0 < p := by omega
   let SC := @sperner_cube_of_function n f p ppos
   obtain ⟨I, h3⟩ := weaker_cubical_sperner SC
   have h4 j : j ≤ n → ∃ i, SC.RL (I i) = j := by {
@@ -260,7 +260,7 @@ theorem fixed_point_unit_cube (f : C(@unit_cube n, @unit_cube n)) : ∃ x, f x =
     obtain ⟨yk, h6⟩ := axiomOfChoice h5
     have h4 : Filter.Tendsto yk Filter.atTop (nhds xxx) := by {
       apply tendsto_of_tendsto_of_dist h2.2
-      have h7 := tendsto_one_div_add_atTop_nhds_zero_nat
+      have h7 := @tendsto_one_div_add_atTop_nhds_zero_nat ℝ _ _ _ _
       apply tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds h7 _
       {
         intro i
@@ -280,3 +280,8 @@ theorem fixed_point_unit_cube (f : C(@unit_cube n, @unit_cube n)) : ∃ x, f x =
   ext k
   apply le_antisymm (h4 k) (h3 k)
 }
+
+/-- The cubical fixed-point theorem stated with mathlib's `Function.IsFixedPt` vocabulary. -/
+theorem fixed_point_unit_cube_isFixedPt (f : C(@unit_cube n, @unit_cube n)) :
+    ∃ x, Function.IsFixedPt f x := by
+  simpa [Function.IsFixedPt] using fixed_point_unit_cube f

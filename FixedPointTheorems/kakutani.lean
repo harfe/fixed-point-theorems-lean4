@@ -77,9 +77,7 @@ lemma caratheodory_1 {V : Type*}
     unfold g2 at h5
     simp only [Fin.ofNat_eq_cast] at h5
     rw [←Fin.val_eq_val] at h5 ⊢
-    rwa [Fin.val_cast_of_lt, Fin.val_cast_of_lt] at h5
-    apply lt_of_lt_of_le i2.2 h4
-    apply lt_of_lt_of_le i1.2 h4
+    rwa [Fin.val_cast_of_lt, Fin.val_cast_of_lt] at h5 <;> omega
   }
   have hsne : s.Nonempty := convexHull_nonempty_iff.mp (Set.nonempty_of_mem h2)
   obtain ⟨sdef, hsdef⟩ := hsne
@@ -244,12 +242,12 @@ theorem kakutani_fixed_point {V : Type*}
   have hx2 : Tendsto x atTop (nhds xxx) :=  (Tendsto.fst_nhds hA2).fst_nhds.fst_nhds
   have hy2 j: Tendsto (y j) atTop (nhds xxx) := by {
     have h8 i : dist (x i) (y j i) < 1 / (↑(φ i) + 1) := ((h6 (φ i)).2 j).1
-    have h7 := tendsto_one_div_add_atTop_nhds_zero_nat
+    have h7 := @tendsto_one_div_add_atTop_nhds_zero_nat ℝ _ _ _ _
     apply tendsto_of_tendsto_of_dist hx2
     apply squeeze_zero (fun _ ↦ dist_nonneg) _ h7
     intro i
     apply le_trans (le_of_lt (h8 i))
-    simp only [Nat.cast_add, Nat.cast_one, one_div]
+    simp only [one_div]
     apply inv_anti₀ (Nat.cast_add_one_pos i)
     simp only [add_le_add_iff_right, Nat.cast_le]
     exact h3.1.le_apply
@@ -270,14 +268,14 @@ theorem kakutani_fixed_point {V : Type*}
     }
     apply And.intro
     {
-      have h12 := tendsto_finset_sum Finset.univ (fun i _ ↦ ha2 i)
+      have h12 := tendsto_finsetSum Finset.univ (fun i _ ↦ ha2 i)
       have h11 i : ∑ c, α c i = 1 := (h6 (φ i)).1.2.1
       simp only [h11, tendsto_const_nhds_iff] at h12
       exact h12.symm
     }
     have h11 i : x i = ∑ j, α j i • z j i := (h6 (φ i)).1.2.2
     have h12 j := Tendsto.smul (ha2 j) (hz2 j)
-    have h13 := tendsto_finset_sum Finset.univ (fun i _ ↦ h12 i)
+    have h13 := tendsto_finsetSum Finset.univ (fun i _ ↦ h12 i)
     simp only [← h11] at h13
     have h14 : Tendsto (fun i ↦ (x i).1) atTop (nhds xxx.1) := by {
       apply continuous_subtype_val.seqContinuous hx2
