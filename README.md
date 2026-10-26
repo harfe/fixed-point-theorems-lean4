@@ -14,7 +14,7 @@ See Kuhn, 1960, "Some Combinatorial Lemmas in Topology" for this approach.
 
 ## Build
 
-Requires Lean 4 (`v4.30.0`) and Mathlib (`v4.30.0`).
+Requires Lean 4 (`v4.35.0`) and Mathlib (`v4.35.0`).
 
 ```bash
 lake exe cache get

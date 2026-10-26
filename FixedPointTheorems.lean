@@ -1,4 +1,6 @@
 -- This module serves as the root of the `FixedPointTheorems` library.
 -- Import modules here that should be built as part of the library.
-import FixedPointTheorems.brouwer
-import FixedPointTheorems.kakutani
+module
+
+public import FixedPointTheorems.brouwer
+public import FixedPointTheorems.kakutani

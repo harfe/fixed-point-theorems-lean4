@@ -1,10 +1,10 @@
+module
 
+public import Mathlib.Analysis.Convex.Intrinsic
+public import Mathlib.Topology.Defs.Basic
+public import FixedPointTheorems.cubical_sperner
 
-import Mathlib.Analysis.Convex.Intrinsic
-import Mathlib.Topology.Defs.Basic
-import FixedPointTheorems.cubical_sperner
-
-open Classical
+@[expose] public section
 
 /-
 shows the fixed-point theorem for the unit cube
@@ -16,6 +16,7 @@ variable {n : ℕ}
 
 def unit_cube := { v : Fin n → ℝ | 0 ≤ v ∧ v ≤ 1 }
 
+-- genuinely noncomputable: the comparisons are on real numbers (`Real.decidableEq`)
 noncomputable def rl_point {f : @unit_cube n → @unit_cube n} (x : @unit_cube n) : ℕ :=
   match (Finset.min { i | (f x).1 i < x.1 i ∨ x.1 i = 1}) with
     | some k => k.1
@@ -128,10 +129,11 @@ lemma reduced_label_props_3 (f : @unit_cube n → @unit_cube n) (x : @unit_cube 
   }
 }
 
+-- genuinely noncomputable: division of real numbers
 noncomputable def discrete_map (p : ℕ ) (v : Fin n → Fin (p+1)) : @unit_cube n :=
   ⟨ fun i ↦ ((v i).1 : ℝ ) / p , by {
     unfold unit_cube
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     rw [Pi.le_def, Pi.le_def, ←forall_and]
     intro i
     simp only [Pi.zero_apply, Pi.one_apply]
@@ -142,6 +144,7 @@ noncomputable def discrete_map (p : ℕ ) (v : Fin n → Fin (p+1)) : @unit_cube
     exact Fin.is_le (v i)
   }⟩
 
+-- genuinely noncomputable: depends on `rl_point`
 noncomputable def sperner_cube_of_function (f : @unit_cube n → @unit_cube n)
   (p : ℕ ) {ppos : 0 < p} : SpernerCube where
   n := n
@@ -230,7 +233,7 @@ lemma nearby_points (f : @unit_cube n → @unit_cube n) (p0:ℕ):
 
 
 theorem fixed_point_unit_cube (f : C(@unit_cube n, @unit_cube n)) : ∃ x, f x = x := by {
-  obtain ⟨x0s, hx0⟩ := axiomOfChoice (nearby_points f)
+  obtain ⟨x0s, hx0⟩ := Classical.axiomOfChoice (nearby_points f)
   have hc1 : ∃ xx : @unit_cube n, ∃ (φ:ℕ → ℕ ), StrictMono φ ∧
       Filter.Tendsto (x0s ∘ φ ) Filter.atTop (nhds xx) := by {
     have hc1 : IsCompact (@unit_cube n) := isCompact_Icc
@@ -257,7 +260,7 @@ theorem fixed_point_unit_cube (f : C(@unit_cube n, @unit_cube n)) : ∃ x, f x =
   have h4 k : (f xxx).1 k ≤ xxx.1 k := by {
     show g k (f xxx) ≤ g k xxx
     have h5 n:= (hx0 (φ n) k).2
-    obtain ⟨yk, h6⟩ := axiomOfChoice h5
+    obtain ⟨yk, h6⟩ := Classical.axiomOfChoice h5
     have h4 : Filter.Tendsto yk Filter.atTop (nhds xxx) := by {
       apply tendsto_of_tendsto_of_dist h2.2
       have h7 := @tendsto_one_div_add_atTop_nhds_zero_nat ℝ _ _ _ _

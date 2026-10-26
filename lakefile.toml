@@ -1,8 +1,10 @@
 name = "fixed-point-theorems"
-version = "0.1.0"
+version = "4.35.0"
 keywords = ["math"]
 defaultTargets = ["FixedPointTheorems"]
 fixedToolchain = true
+# Keep ordinary Lean imports while consuming module-system dependencies.
+allowNonModules = true
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
@@ -11,7 +13,7 @@ autoImplicit = false
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.32.0"
+rev = "v4.35.0"
 
 [[lean_lib]]
 name = "FixedPointTheorems"

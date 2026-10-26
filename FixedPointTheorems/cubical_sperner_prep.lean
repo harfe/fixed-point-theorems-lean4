@@ -1,10 +1,10 @@
+module
 
-import Mathlib.Combinatorics.Enumerative.DoubleCounting
+public import Mathlib.Combinatorics.Enumerative.DoubleCounting
 import Mathlib.Algebra.BigOperators.Ring.Nat
 import Mathlib.Tactic
 
-open Classical
-
+@[expose] public section
 
 /-
 The Cubical Sperner's Lemma.
@@ -20,11 +20,14 @@ structure SpernerCube where
 
 namespace SpernerCube
 
-def G (SC : SpernerCube) := Fin SC.n → Fin (SC.p+1)
+/-- The vertices of the cube: functions from coordinates to grid positions.
 
-instance Gfin (SC : SpernerCube): Fintype SC.G := by {
-  exact Pi.instFintype
-}
+This is `abbrev` (i.e. reducible) rather than `def` on purpose.  `G` is used purely as a
+type synonym, and instance search only unfolds reducible definitions: with a plain `def`,
+even the type of an application `v i` for `v : SC.G` cannot be computed during instance
+resolution, so `DecidableEq SC.G` and `DecidablePred fun i => v1 i ≠ v2 i` both fail and
+silently fall back to `Classical.propDecidable`. -/
+abbrev G (SC : SpernerCube) := Fin SC.n → Fin (SC.p+1)
 
 end SpernerCube
 
@@ -46,6 +49,42 @@ def is_face I J :=
 def is_boundary_face I := ∃! J, @is_face SC n1 I J
 
 def complete_boundary_face I := is_boundary_face SC I ∧ complete_simplex SC n1 I
+
+/-! ### Decidability
+
+The predicates above are `def`s, so instance search does not unfold them, and every one of
+them quantifies only over finite types.  Rather than let `Classical.propDecidable` supply
+the instances (which is what an unscoped `open Classical` used to do, silently), the genuine
+decision procedures are given here; this is what keeps `Finset.card {J | is_face SC I J}`
+and friends computable. -/
+
+instance decidableRangeSubset {α β γ : Type*} [Fintype α] [Fintype β] [DecidableEq γ]
+    (I : α → γ) (J : β → γ) : Decidable (Set.range I ⊆ Set.range J) :=
+  decidable_of_iff (∀ a, ∃ b, J b = I a) (by simp [Set.range_subset_iff, Set.mem_range])
+
+instance decidableSimplex (m : ℕ) (I : Fin (m+1) → SC.G) : Decidable (simplex SC m I) :=
+  inferInstanceAs (Decidable (_ ∧ _))
+
+instance decidableCompleteSimplex (m : ℕ) (I : Fin (m+1) → SC.G) :
+    Decidable (complete_simplex SC m I) :=
+  have : Decidable (Set.range (fun (i : Fin (m+1)) ↦ SC.RL (I i)) = {j : ℕ | j ≤ m}) :=
+    decidable_of_iff ((∀ i, SC.RL (I i) ≤ m) ∧ ∀ c ≤ m, ∃ i, SC.RL (I i) = c) (by
+      simp only [Set.ext_iff, Set.mem_range, Set.mem_ofPred_eq]
+      exact ⟨fun h c ↦ ⟨fun ⟨i, hi⟩ ↦ hi ▸ h.1 i, fun hc ↦ h.2 c hc⟩,
+        fun h ↦ ⟨fun i ↦ (h _).1 ⟨i, rfl⟩, fun c hc ↦ (h c).2 hc⟩⟩)
+  inferInstanceAs (Decidable (_ ∧ _))
+
+instance decidableIsFace (I : Fin (n1+1) → SC.G) (J : Fin (SC.n+1) → SC.G) :
+    Decidable (@is_face SC n1 I J) :=
+  inferInstanceAs (Decidable (_ ∧ _ ∧ Set.range I ⊆ Set.range J))
+
+instance decidableIsBoundaryFace (I : Fin (n1+1) → SC.G) :
+    Decidable (@is_boundary_face SC n1 I) :=
+  inferInstanceAs (Decidable (∃ J, @is_face SC n1 I J ∧ ∀ J', @is_face SC n1 I J' → J' = J))
+
+instance decidableCompleteBoundaryFace (I : Fin (n1+1) → SC.G) :
+    Decidable (@complete_boundary_face SC n1 I) :=
+  inferInstanceAs (Decidable (_ ∧ _))
 
 def case_A (I : Fin (n1 +1) → SC.G) := ∃ j, ∀ k, I k j = 0
 
@@ -378,7 +417,7 @@ lemma is_insert_index_of_strict_mono f (hsm : StrictMono f)
     apply almost_surjective_of_insert_index
     exact hj k1
   }
-  obtain ⟨g, hg⟩ := axiomOfChoice h1
+  obtain ⟨g, hg⟩ := Classical.axiomOfChoice h1
   have h2 : StrictMono g := by {
     intro k1 k2
     contrapose!
@@ -410,7 +449,7 @@ lemma child_simplex_char (I : Fin (n1 +1) → SC.G) J {hs : simplex SC SC.n J}
         use j
         exact hj.symm
       }
-      apply axiom_of_choice h3
+      apply Classical.axiom_of_choice h3
     }
     obtain ⟨f, hf ⟩ := h2
     have h31 : Function.Injective f := by {
@@ -471,11 +510,11 @@ lemma insert_vertex I (v : SC.G) j :
       rw [h2, hi]
     }
   }
-  obtain ⟨J, h2⟩ := axiomOfChoice h1
+  obtain ⟨J, h2⟩ := Classical.axiomOfChoice h1
   use J
   apply And.intro
   {
-    ext i
+    funext i
     exact (h2 (@insert_index SC n1 hn1 j i)).2 i rfl
   }
   exact (h2 j).1 rfl
@@ -871,7 +910,7 @@ lemma ccc_fun_case_D_iff {m} I (hs : simplex SC m I) :
     case_D SC I ↔ ccc_fun SC I (Fin.last m) = Fin.last SC.n := by {
   have h1 : (ccc_fun SC I (Fin.last m) = Fin.last SC.n) ↔ ∀ k, I 0 k ≠ I (Fin.last m) k  := by {
     unfold ccc_fun coord_change_count
-    rw [Fin.mk.inj_iff]
+    rw [Fin.ext_iff]
     have h3 : SC.n = Fintype.card (Fin SC.n) := by {exact Eq.symm (Fintype.card_fin SC.n)}
     simp only [ne_eq, Fin.val_last]
     nth_rewrite 7 [h3]
@@ -1060,7 +1099,7 @@ lemma same_delete_index_eq_iff J1 J2 j
     : J1 = J2 ↔ J1 j = J2 j := by {
   apply Iff.intro (fun a ↦ congrFun a j)
   intro h2
-  ext j2
+  funext j2
   by_cases h3 : j2 = j
   rw [h3,h2]
   obtain ⟨i1, hi1⟩ := @almost_surjective_of_insert_index SC n1 hn1 j j2 h3
@@ -1616,7 +1655,7 @@ lemma case_B_boundary {hn1 : n1 + 1 = SC.n} I (hs : simplex SC n1 I)
 -- used in other file
 lemma parent_count {hn1 : n1 + 1 = SC.n} I (hs : simplex SC n1 I) :
     Finset.card { J : Fin (SC.n + 1) → SC.G | is_face SC I J} ∈ {c | c = 1 ∨ c = 2} := by {
-  simp only [Set.mem_setOf_eq]
+  simp only [Set.mem_ofPred_eq]
   have h1 := one_of_ABCD SC I
   rw [←or_assoc] at h1
   cases' h1 with h1 h1

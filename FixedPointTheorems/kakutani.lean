@@ -1,10 +1,14 @@
+module
 
-import Mathlib.Topology.Algebra.Module.FiniteDimension
+public import Mathlib.Topology.Algebra.Module.FiniteDimension
+public import FixedPointTheorems.brouwer
+
 import Mathlib.Analysis.Normed.Affine.Isometry
 import Mathlib.Analysis.Convex.PartitionOfUnity
 import Mathlib.Analysis.Convex.Caratheodory
+import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
 
-import FixedPointTheorems.brouwer
+@[expose] public section
 
 /-
 Kakutani Fixed-Point theorem:
@@ -19,7 +23,6 @@ Proof relies on the Brouwer fixed-point theorem.
 https://en.wikipedia.org/wiki/Kakutani_fixed-point_theorem
 -/
 
-open Classical
 open Filter
 
 /- defining the closed graph property of a set-valued map -/
@@ -138,7 +141,7 @@ lemma set_valued_map_approx_fixed_point {V : Type*}
     intro x
     exact convex_convexHull ℝ {z | ∃ y, dist x y < eps ∧ z ∈ f y}
   }
-  haveI : CompactSpace ↑s := isCompact_iff_compactSpace.mp hcmpct
+  have : CompactSpace ↑s := isCompact_iff_compactSpace.mp hcmpct
   have h2 := exists_continuous_forall_mem_convex_of_local_const hG1
   have h3 : ∃ g : C(s, V), ∀ x, g x ∈ G x := by {
     apply h2
@@ -183,7 +186,7 @@ lemma set_valued_map_approx_fixed_point {V : Type*}
     apply h7.1
     use i
   }
-  obtain ⟨y, hy⟩ := axiomOfChoice h8
+  obtain ⟨y, hy⟩ := Classical.axiomOfChoice h8
   use y, z, α
   tauto
 }
@@ -201,12 +204,12 @@ theorem kakutani_fixed_point {V : Type*}
   have h31 (i : ℕ) : 0 < (1:ℝ )/(i+1) := Nat.one_div_pos_of_nat
   have h3 (i : ℕ) := h2 ((1:ℝ )/(i + 1)) (h31 i)
   have h5 i := Prod.exists'.mpr (Prod.exists'.mpr (Prod.exists'.mpr (h3 i)))
-  obtain ⟨B,h6⟩ := axiomOfChoice h5
+  obtain ⟨B,h6⟩ := Classical.axiomOfChoice h5
   clear h2 h3 h5
   let Btype := ((↑s × (Fin (k + 1) → ↑s)) × (Fin (k + 1) → V)) × (Fin (k + 1) → ℝ)
   let sB : Set Btype := (Set.univ ×ˢ {x | ∀ i, x i ∈ s}) ×ˢ (Set.Icc 0 1)
   have hBc : IsCompact sB := by {
-    haveI : CompactSpace ↑s := isCompact_iff_compactSpace.mp hcmpct
+    have : CompactSpace ↑s := isCompact_iff_compactSpace.mp hcmpct
     apply IsCompact.prod
     apply IsCompact.prod
     {

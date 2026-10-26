@@ -1,10 +1,10 @@
+module
 
+public import FixedPointTheorems.apply_cubical_sperner
+public import FixedPointTheorems.convex_homeos
+public import Mathlib.Dynamics.FixedPoints.Basic
 
-import FixedPointTheorems.apply_cubical_sperner
-import FixedPointTheorems.convex_homeos
-import Mathlib.Dynamics.FixedPoints.Basic
-
-
+@[expose] public section
 
 /- Brouwer fixed-point theorem:
 Every continuous function mapping a nonempty compact convex set to itself has a fixed point
